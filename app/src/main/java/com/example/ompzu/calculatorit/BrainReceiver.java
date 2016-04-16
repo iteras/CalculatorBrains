@@ -18,7 +18,7 @@ public class BrainReceiver extends BroadcastReceiver{
         String debuggable = "";
         if (extras != null){
             debuggable = extras.toString();
-            MainActivity.display(debuggable);
+            MainActivity.saveInput(debuggable);
         }
         Toast.makeText(ctx,"Intent received " + debuggable, Toast.LENGTH_SHORT ).show();
         if(BuildConfig.DEBUG){

@@ -1,5 +1,6 @@
 package com.example.ompzu.calculatorit;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -27,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
 
+    //Broadcast receiver IN
+    public static void saveInput (String str){
+        btnId = str;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
             input = savedInstanceState.getStringArrayList("input");
         }
         textViewResult = (TextView) findViewById(R.id.textViewResult);
+        display(btnId);
     }
 
 
@@ -54,10 +60,17 @@ public class MainActivity extends AppCompatActivity {
         display(input);
     }
 
+    //broadcasting out
+    public void broadcastIntent(String result){
+        Intent intent = new Intent("CustomBroadcast");
+        intent.putExtra("result", result);
+        intent.setAction("com.SEND_RESULT");
+        sendBroadcast(intent);
+    }
 
     public void display(String in){
         if(in.length() > 0){ //if received sentence has something then it will be our input
-          //  btnId = in;
+            btnId = in;
         }
         if(btnId.equals("E")){ //input is equals
             if(!nr.isEmpty()){
@@ -158,8 +171,10 @@ public class MainActivity extends AppCompatActivity {
                 showEquation = showEquation + "=" + showResult + " " ; //string which is displayed
             }
             textViewResult.setText(showEquation); //displaying
+            broadcastIntent(showEquation);
         } else  {
             textViewResult.setText(showEquation + " "); //displaying
+            broadcastIntent(showEquation + " ");
         }
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Button clicked: " + btnId + " in array: " + input.toString() + " And nr: " + nr);
