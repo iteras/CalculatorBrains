@@ -61,11 +61,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //broadcasting out
-    public void broadcastIntent(String result){
+    public void broadcastIntent(ArrayList<String> result){
         Intent intent = new Intent("CustomBroadcast");
         intent.putExtra("result", result);
         intent.setAction("com.SEND_RESULT");
         sendBroadcast(intent);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Intente sent!");
+        }
     }
 
     public void display(String in){
@@ -129,6 +132,9 @@ public class MainActivity extends AppCompatActivity {
         }
         int firstOsCheck = 0;
         int secondOsCheck= 0;
+        if(input.size() > 2){
+            broadcastIntent(input);
+        }
         if(input.size() > 0){
             firstOsCheck = CalcEngine.compare(input.get(0)); //returns 0 if string in arraylist slot equals to operation, else its number
         }
@@ -141,6 +147,9 @@ public class MainActivity extends AppCompatActivity {
                 &&(input.contains("P") || input.contains("M") || input.contains("X") ||
                 input.contains("D") || input.contains("W"))){
 
+
+            ArrayList<String> temp = new ArrayList<String>();
+            broadcastIntent(input); //OUT BROADCAST
             input = CalcEngine.operation(input); //the operation will be done and equation will be calculated
             if(input.size() == 1){
                 showResult = input.get(0);
@@ -148,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
             nr = "";
 
         } else if(input.size() == 2 && (btnId.contains("S") ||btnId.contains("N"))){
+            broadcastIntent(input);//OUT BROADCAST
 
             input = CalcEngine.operation(input); //the operation will be done and equation will be calculated
             nr = "";
@@ -171,10 +181,10 @@ public class MainActivity extends AppCompatActivity {
                 showEquation = showEquation + "=" + showResult + " " ; //string which is displayed
             }
             textViewResult.setText(showEquation); //displaying
-            broadcastIntent(showEquation);
+
         } else  {
             textViewResult.setText(showEquation + " "); //displaying
-            broadcastIntent(showEquation + " ");
+
         }
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Button clicked: " + btnId + " in array: " + input.toString() + " And nr: " + nr);
