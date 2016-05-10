@@ -18,7 +18,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".BrainReceiver">
+        <receiver android:name=".BrainReceiver"
+            android:enabled ="true"
+            android:exported="true">
+
             <intent-filter>
                 <action android:name="com.SEND_RESULT_FROM_BRAIN"></action>
             </intent-filter>

@@ -16,10 +16,11 @@ import com.example.ompzu.calculatorit.R;
 import com.example.ompzu.calculatorit.CalcEngine;
 
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ArrayList<String> input = new ArrayList<String>(); //consists of 2 numbers and operation( [1,P,99] is 1 + 99
+    private static ArrayList<String> input = new ArrayList<String>(); //consists of 2 numbers and operation( [1,P,99] is 1 + 99
     private TextView textViewResult; //used in showing text on display
     private String nr = ""; //used in building numbers, as for creating numbers like 22, 99,43435
     private String showResult=""; //used at end to show result
@@ -27,10 +28,36 @@ public class MainActivity extends AppCompatActivity {
     private static String btnId=""; //used to work with inputs, as input ID's go in this variable
     private static final String TAG = "MainActivity";
 
+    public static ArrayList<String> clearInput(String str){
+        int length = str.length();
+        //str = str.substring(1,length-1); //remove brackets
+
+        StringTokenizer st = new StringTokenizer(str, "[], ");
+        String s = "";
+        while(st.hasMoreTokens()){
+            s = st.nextToken();
+            input.add(s);
+            Log.d(TAG, "Tokens are " + s);
+        }
+        //input.add(s);
+        Log.d(TAG, "Last token is " + s);
+        return input;
+
+    }
 
     //Broadcast receiver IN
-    public static void saveInput (String str){
-        btnId = str;
+    public void saveInput(String str){
+        ArrayList<String> in = new ArrayList<String>();
+        in = clearInput(str); // string to arraylist
+        //btnId = str.substring(str.length()-1);
+        input = in; //input is now our string from broadcasted UI
+        //input.remove(2); //remove last cuz its gonna be added later
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Input saved, new input value is: " + input.toString());
+        }
+        //work(btnId);
+        work("0");
+        //new MainActivity().work("0");
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +74,9 @@ public class MainActivity extends AppCompatActivity {
             input = savedInstanceState.getStringArrayList("input");
         }
         textViewResult = (TextView) findViewById(R.id.textViewResult);
-        display(btnId);
+        if(!btnId.isEmpty()){
+            work(btnId);
+        }
     }
 
 
@@ -57,9 +86,9 @@ public class MainActivity extends AppCompatActivity {
         btnId = btn.getResources().getResourceName(btn.getId());
         btnId = btnId.substring(btnId.length() - 1, btnId.length());
         String input = btnId;
-        display(input);
+        work(input);
     }
-
+/*
     //broadcasting out
     public void broadcastIntent(ArrayList<String> result){
         Intent intent = new Intent("CustomBroadcast");
@@ -67,34 +96,61 @@ public class MainActivity extends AppCompatActivity {
         intent.setAction("com.SEND_RESULT");
         sendBroadcast(intent);
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Intente sent!");
+            Log.d(TAG, "Intente sent by BRAIN!");
+        }
+
+    }*/
+
+    //broadcasting out
+    public void broadcastIntent(ArrayList<String> str){
+        if(str.size() == 1) {
+            Intent intent = new Intent("CustomBroadcasts");
+            String s = "";
+            s = str.toString();
+            intent.setAction("com.SEND_RESULT");
+            intent.putExtra("result", s);
+            intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+            if (BuildConfig.DEBUG) {
+
+                Log.d(TAG, "Broadcast intent sent with content: " + intent.getStringExtra("result"));
+                Log.d(TAG, str.toString());
+            }
+            Log.d(TAG, "before sending");
+            sendBroadcast(intent);
+            Log.d(TAG, "after sending");
+        }else{
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "Broadcast not sent, because string length was " + str.size() + "! It's over the required size! It MUST contain only 1 element and that should be calculation answere");
+            }
+            return;
         }
     }
 
-    public void display(String in){
-        if(in.length() > 0){ //if received sentence has something then it will be our input
+
+    public void work(String in) {
+        if (in.length() > 0) { //if received sentence has something then it will be our input
             btnId = in;
         }
-        if(btnId.equals("E")){ //input is equals
-            if(!nr.isEmpty()){
+        if (btnId.equals("E")) { //input is equals
+            if (!nr.isEmpty()) {
                 input.add(nr);  //operation inserted, finsih the nr, add to arraylist and clean the string
             } else {
                 nr = "";//remove number from memory
             }
         }
 
-        if(!btnId.equals("P") && !btnId.equals("M") && !btnId.equals("X") &&
+        if (!btnId.equals("P") && !btnId.equals("M") && !btnId.equals("X") &&
                 !btnId.equals("D") && !btnId.equals("C") && !btnId.equals("E") &&
-                !btnId.equals("W") && !btnId.equals("N") && !btnId.equals("S")){ //input is number
-            if(btnId.equals("K") && !nr.contains(".")){ //inserts Coma to string
+                !btnId.equals("W") && !btnId.equals("N") && !btnId.equals("S")) { //input is number
+            if (btnId.equals("K") && !nr.contains(".")) { //inserts Coma to string
                 btnId = ".";
                 nr = nr + btnId;
                 showEquation = showEquation + btnId;
-            } else if(!btnId.equals("K")) {
-                if(btnId.equals("0") && !nr.equals("0")){
+            } else if (!btnId.equals("K")) {
+                if (btnId.equals("0") && !nr.equals("0")) {
                     nr = nr + btnId; //click 7 nr is 7, click 4 and nr is 74, click 1 nr is 741
                     showEquation = showEquation + btnId;
-                }else {
+                } else {
                     nr = nr + btnId; //click 7 nr is 7, click 4 and nr is 74, click 1 nr is 741
                     showEquation = showEquation + btnId;
                 }
@@ -102,107 +158,113 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (btnId.equals("P") || btnId.equals("M") || btnId.equals("X") || btnId.equals("D") ||
-                btnId.equals("W") || btnId.equals("N") || btnId.equals("S") ) { //input is operation
-            if(!nr.isEmpty()){
+                btnId.equals("W") || btnId.equals("N") || btnId.equals("S")) { //input is operation
+            if (!nr.isEmpty()) {
                 input.add(nr); //operation pressed, finsih the nr, add to arraylist and clean the string
             }
-            if(input.size() == 1){
+            if (input.size() == 1) {
                 String inputOP = "";
                 nr = ""; //remove number from memory
-                if(btnId.equals("p")) inputOP = " + ";
-                if(btnId.equals("M")) inputOP = " - ";
-                if(btnId.equals("X")) inputOP = " * ";
-                if(btnId.equals("D")) inputOP = " / ";
-                if(btnId.equals("W")) inputOP = " pow ";
-                if(btnId.equals("N")) inputOP = " sin ";
-                if(btnId.equals("S")) inputOP = " cos ";
+                if (btnId.equals("p")) inputOP = " + ";
+                if (btnId.equals("M")) inputOP = " - ";
+                if (btnId.equals("X")) inputOP = " * ";
+                if (btnId.equals("D")) inputOP = " / ";
+                if (btnId.equals("W")) inputOP = " pow ";
+                if (btnId.equals("N")) inputOP = " sin ";
+                if (btnId.equals("S")) inputOP = " cos ";
 
-                //MAY BE BROKEN NOW
+
                 showEquation = showEquation + inputOP; //displays operation marks
                 input.add(btnId);
             }
         }
 
-        if(btnId.contains("C")) { //input is Clear function
+        if (btnId.contains("C")) { //input is Clear function
             input.clear(); //clean arrayList
             nr = "";//remove number from memory
-            showResult =""; //clean display result
-            showEquation=""; //clean display equation
-            if(BuildConfig.DEBUG) Log.d( TAG,"Array reset: " + input.toString());
+            showResult = ""; //clean display result
+            showEquation = ""; //clean display equation
+            if (BuildConfig.DEBUG) Log.d(TAG, "Array reset: " + input.toString());
         }
         int firstOsCheck = 0;
-        int secondOsCheck= 0;
-        if(input.size() > 2){
+        int secondOsCheck = 0;
+        /*if (input.size() > 2) {
             broadcastIntent(input);
-        }
-        if(input.size() > 0){
+        }*/
+        if (input.size() > 0) {
             firstOsCheck = CalcEngine.compare(input.get(0)); //returns 0 if string in arraylist slot equals to operation, else its number
         }
 
-        if(input.size() == 3){
+        if (input.size() == 3) {
             secondOsCheck = CalcEngine.compare(input.get(2)); //returns 0 if string in arraylist slot equals to operation, else its number
         }
 
-        if(input.size() >= 3 && firstOsCheck != 0 && secondOsCheck != 0
-                &&(input.contains("P") || input.contains("M") || input.contains("X") ||
-                input.contains("D") || input.contains("W"))){
-
-
-            ArrayList<String> temp = new ArrayList<String>();
+        if (input.size() >= 3 && firstOsCheck != 0 && secondOsCheck != 0
+                && (input.contains("P") || input.contains("M") || input.contains("X") ||
+                input.contains("D") || input.contains("W"))) {
+            input = CalcEngine.operation(input); //the operation will be done and equation will be calculated
+            Log.d(TAG, "Calculated and answer is " + input.toString());
             broadcastIntent(input); //OUT BROADCAST
-            input = CalcEngine.operation(input); //the operation will be done and equation will be calculated
-            if(input.size() == 1){
+            if (input.size() == 1) {
                 showResult = input.get(0);
             }
             nr = "";
 
-        } else if(input.size() == 2 && (btnId.contains("S") ||btnId.contains("N"))){
+        } else if (input.size() == 2 && (btnId.contains("S") || btnId.contains("N"))) {
             broadcastIntent(input);//OUT BROADCAST
-
+            Log.d(TAG, "Calculated and answer is " + input.toString());
             input = CalcEngine.operation(input); //the operation will be done and equation will be calculated
             nr = "";
-            if(input.size() == 1){
+            if (input.size() == 1) {
                 showResult = input.get(0);
             }
         }
-
-
-        textViewResult = (TextView) findViewById(R.id.textViewResult);
-        if(btnId.equals("E") || (btnId.equals("P") || btnId.equals("M") || btnId.equals("X") || btnId.equals("D") ||
-                btnId.equals("W") || btnId.equals("N") || btnId.equals("S") && input.size() > 2)) { //lets continue calculate w/o pressing "=" but any other
-            //operation button
-            if(!btnId.equals("E")){
-
-                //nr = ""; //seesms it is not used
-                //  input.add(btnId);
-            }
-            nr = ""; //neccesery for after Equals button pressing, cleans variable "nr"
-            if(input.size() == 1){ //if only numeric is inserted then displa
-                showEquation = showEquation + "=" + showResult + " " ; //string which is displayed
-            }
-            textViewResult.setText(showEquation); //displaying
-
-        } else  {
-            textViewResult.setText(showEquation + " "); //displaying
-
-        }
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Button clicked: " + btnId + " in array: " + input.toString() + " And nr: " + nr);
-        }
-
-
-        //3 If's below change font size according to how long equations are displayed
-        if(showEquation.length() > 25){
-            ((TextView) findViewById(R.id.textViewResult)).setTextSize(25);
-        }
-        if(showEquation.length() > 55){
-            ((TextView) findViewById(R.id.textViewResult)).setTextSize(15);
-        }
-
-        if(showEquation.length() < 25){
-            ((TextView) findViewById(R.id.textViewResult)).setTextSize(45);
-        }
+        String btn = btnId;
+        display(btn);
     }
+
+
+
+        public void display(String btn){
+            btnId = btn;
+            textViewResult = (TextView) findViewById(R.id.textViewResult);
+            if(btnId.equals("E") || (btnId.equals("P") || btnId.equals("M") || btnId.equals("X") || btnId.equals("D") ||
+                    btnId.equals("W") || btnId.equals("N") || btnId.equals("S") && input.size() > 2)) { //lets continue calculate w/o pressing "=" but any other
+                //operation button
+                if(!btnId.equals("E")){
+
+                    //nr = ""; //seesms it is not used
+                    //  input.add(btnId);
+                }
+                nr = ""; //neccesery for after Equals button pressing, cleans variable "nr"
+                if(input.size() == 1){ //if only numeric is inserted then displa
+                    showEquation = showEquation + "=" + showResult + " " ; //string which is displayed
+                }
+                textViewResult.setText(showEquation); //displaying
+
+            } else  {
+                textViewResult.setText(showEquation + " "); //displaying
+
+            }
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "Button clicked: " + btnId + " in array: " + input.toString() + " And nr: " + nr);
+            }
+
+
+            //3 If's below change font size according to how long equations are displayed
+            if(showEquation.length() > 25){
+                ((TextView) findViewById(R.id.textViewResult)).setTextSize(25);
+            }
+            if(showEquation.length() > 55){
+                ((TextView) findViewById(R.id.textViewResult)).setTextSize(15);
+            }
+
+            if(showEquation.length() < 25){
+                ((TextView) findViewById(R.id.textViewResult)).setTextSize(45);
+            }
+    }
+
+
 
 
 
