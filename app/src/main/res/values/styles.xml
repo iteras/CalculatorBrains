@@ -16,20 +16,5 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-    <style name="calcbuttons">
-        <item name="android:radius">40dp</item>
-        <item name="android:textColor">#FFFFFF</item>
-        <item name="android:layout_margin">2dp</item>
-        <item name="android:textSize">24dp</item>
-        <item name="android:background">@drawable/calcbutton</item>
-    </style>
 
-    <style name="buttonClicked" parent="@android:style/Widget.Button">
-        <item name="android:radius">40dp</item>
-        <item name="android:textColor">#FFFFFF</item>
-        <item name="android:layout_margin">2dp</item>
-        <item name="android:textSize">24dp</item>
-        <item name="android:clickable">true</item>
-        <item name="android:background">@drawable/calcbutton</item>
-    </style>
 </resources>
